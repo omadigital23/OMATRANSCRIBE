@@ -24,6 +24,7 @@ const SunushopLanding = () => {
   const [reduceMotion, setReduceMotion] = useState(false);
   const [modalQty, setModalQty] = useState(1);
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [toastMsg, setToastMsg] = useState(null);
   
   const heroRef = useRef(null);
 
@@ -204,6 +205,14 @@ const SunushopLanding = () => {
   useEffect(() => {
     try { localStorage.setItem('sunushop_reduce_motion', reduceMotion ? '1' : '0'); } catch {}
   }, [reduceMotion]);
+
+  // Close mobile nav with ESC
+  useEffect(() => {
+    if (!showMobileNav) return;
+    const onKey = (e) => { if (e.key === 'Escape') setShowMobileNav(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showMobileNav]);
 
   const products = [
     {
@@ -459,6 +468,12 @@ const SunushopLanding = () => {
     });
   };
 
+  const showAddedToast = () => {
+    const msg = language === 'fr' ? 'Produit ajouté avec succès' : 'Product added successfully';
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 2000);
+  };
+
   const handleWhatsApp = (product = null) => {
     const phone = '212701193811';
     let message = product 
@@ -497,23 +512,14 @@ const SunushopLanding = () => {
   return (
     <div className="min-h-screen bg-gray-50 overflow-hidden">
       {/* Header */}
-      <header className="bg-white/95 backdrop-blur-sm shadow-sm sticky top-0 z-40 overflow-visible min-h-[64px]">
+      <header className="fixed top-0 inset-x-0 bg-white/95 backdrop-blur-sm shadow-sm z-50 overflow-visible min-h-[56px] md:min-h-[64px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="relative group my-0">
-                <img src="/images/logo.webp" alt="SunuShop" className="h-20 w-auto object-contain transition-transform group-hover:scale-105" />
+                <img src="/images/logo.webp" alt="SunuShop" className="h-12 md:h-20 w-auto object-contain transition-transform group-hover:scale-105" />
               </div>
             </div>
-            
-            <nav className="hidden md:flex space-x-6">
-              <a href="#accueil" className="text-gray-700 hover:text-teal-700 transition-all hover:scale-105">{t.nav.home}</a>
-              <a href="#produits" className="text-gray-700 hover:text-teal-700 transition-all hover:scale-105">{t.nav.products}</a>
-              
-              <a href="#apropos" className="text-gray-700 hover:text-teal-700 transition-all hover:scale-105">{t.nav.about}</a>
-              <button onClick={() => setShowContact(true)} className="text-gray-700 hover:text-teal-700 transition-all hover:scale-105">{t.nav.contact}</button>
-            </nav>
-
             <div className="flex items-center space-x-3">
               {/* Language Switcher */}
               <button
@@ -546,9 +552,25 @@ const SunushopLanding = () => {
         </div>
       </header>
 
+      {/* Spacer for fixed header */}
+      <div className="h-16 md:h-24"></div>
+
+      {showMobileNav && (
+        <div className="fixed inset-0 z-[70]">
+          <div className="absolute inset-0 bg-black/60 z-0" onClick={() => setShowMobileNav(false)}></div>
+          <div className="absolute top-0 right-0 h-full w-72 bg-white shadow-2xl p-6 flex flex-col gap-4 z-10">
+            <button onClick={() => setShowMobileNav(false)} className="self-end text-gray-500 hover:text-gray-700"><X size={24} /></button>
+            <a href="#accueil" onClick={() => setShowMobileNav(false)} className="text-gray-800 font-semibold py-2 border-b">{t.nav.home}</a>
+            <a href="#produits" onClick={() => setShowMobileNav(false)} className="text-gray-800 font-semibold py-2 border-b">{t.nav.products}</a>
+            <a href="#apropos" onClick={() => setShowMobileNav(false)} className="text-gray-800 font-semibold py-2 border-b">{t.nav.about}</a>
+            <button onClick={() => { setShowMobileNav(false); setShowContact(true); }} className="text-gray-800 font-semibold py-2 text-left">{t.nav.contact}</button>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
-      <section id="accueil" ref={heroRef} className="relative bg-gradient-to-br from-teal-700 via-teal-600 to-teal-800 text-white py-32 overflow-hidden">
-        <img src="/images/hero.webp" alt="Hero" className="absolute inset-0 w-full h-full object-cover" />
+      <section id="accueil" ref={heroRef} className="relative bg-gradient-to-br from-teal-700 via-teal-600 to-teal-800 text-white py-20 md:py-32 overflow-hidden">
+        <img src="/images/hero.webp" alt="Hero" className="absolute inset-0 w-full h-full object-contain md:object-cover" />
         <div className="absolute inset-0 bg-gradient-to-br from-teal-900/50 via-teal-800/30 to-teal-700/20"></div>
         <div className="absolute inset-0 opacity-20">
           <div className={`absolute top-10 left-10 w-64 h-64 bg-yellow-500 rounded-full blur-3xl ${reduceMotion ? '' : 'animate-pulse'} hidden md:block`} style={{ willChange: 'transform', transform: reduceMotion ? undefined : `translate3d(0, ${-scrollY * 0.08}px, 0) scale(${1 + Math.sin(scrollY * 0.01) * 0.2})` }}></div>
@@ -558,20 +580,20 @@ const SunushopLanding = () => {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center">
-            <h1 className={`text-5xl md:text-7xl font-bold mb-6 ${reduceMotion ? '' : 'animate-fade-in'}`}>
+            <h1 className={`text-3xl sm:text-4xl md:text-7xl font-bold mb-4 md:mb-6 ${reduceMotion ? '' : 'animate-fade-in'}`}>
               {t.hero.title} <br />
               <span className="text-yellow-400 inline-block animate-bounce-slow">{t.hero.subtitle}</span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-teal-100 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base md:text-2xl mb-6 md:mb-8 text-teal-100 max-w-3xl mx-auto leading-relaxed">
               {t.hero.description}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="#produits" className="bg-red-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-red-700 transition-all hover:scale-105 hover:shadow-2xl hover:-translate-y-0.5 focus-visible:ring-4 ring-red-300/50 inline-flex items-center justify-center space-x-2 active:scale-95">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
+              <a href="#produits" className="bg-red-600 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg text-base md:text-lg font-semibold hover:bg-red-700 transition-all hover:scale-105 hover:shadow-2xl hover:-translate-y-0.5 focus-visible:ring-4 ring-red-300/50 inline-flex items-center justify-center space-x-2 active:scale-95">
                 <span>{t.hero.cta1}</span>
                 <ChevronRight size={20} className="animate-pulse" />
               </a>
-              <button onClick={() => handleWhatsApp()} className="bg-white text-teal-700 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-all hover:scale-105 hover:shadow-2xl hover:-translate-y-0.5 focus-visible:ring-4 ring-teal-300/50 inline-flex items-center justify-center space-x-2 active:scale-95">
-                <Phone size={20} />
+              <button onClick={() => handleWhatsApp()} className="bg-white text-teal-700 px-6 md:px-8 py-3 md:py-4 rounded-lg text-base md:text-lg font-semibold hover:bg-gray-100 transition-all hover:scale-105 hover:shadow-2xl hover:-translate-y-0.5 focus-visible:ring-4 ring-teal-300/50 inline-flex items-center justify-center space-x-2 active:scale-95">
+                <Phone size={18} className="md:size-5" />
                 <span>{t.hero.cta2}</span>
               </button>
             </div>
@@ -602,10 +624,18 @@ const SunushopLanding = () => {
                 </button>
               ))}
             </div>
-            <button onClick={() => setShowFilters(!showFilters)} className="flex items-center space-x-2 px-6 py-3 bg-white rounded-lg hover:bg-gray-100 transition-all hover:scale-105">
-              <Filter size={20} />
-              <span className="font-semibold">{t.products.filters}</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <button onClick={() => setShowFilters(!showFilters)} className="flex items-center space-x-2 px-6 py-3 bg-white rounded-lg hover:bg-gray-100 transition-all hover:scale-105">
+                <Filter size={20} />
+                <span className="font-semibold">{t.products.filters}</span>
+              </button>
+              <button
+                onClick={() => { setActiveCategory('all'); setPriceRange([0, 200000]); setColorFilter('all'); setStockFilter('all'); }}
+                className="px-5 py-3 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold transition-all hover:scale-105"
+              >
+                {language === 'fr' ? 'Réinitialiser' : 'Reset'}
+              </button>
+            </div>
           </div>
 
           {/* Advanced Filters */}
@@ -640,32 +670,32 @@ const SunushopLanding = () => {
           )}
 
           {/* Product Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {filteredProducts.map((product, idx) => (
-              <div key={product.id} data-anim-id={`product-${product.id}`} className={`bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-500 group ${visibleElements.has(`product-${product.id}`) ? (reduceMotion ? '' : 'animate-fade-in-up') : 'opacity-0 translate-y-6'}`} style={{ transitionDelay: `${idx * 100}ms` }}>
-                <div className="relative h-96 overflow-hidden cursor-pointer" onClick={() => openImageModal(product, 0)}>
-                  <img src={product.images[0]} alt={product.name[language]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
+              <div
+                key={product.id}
+                data-anim-id={`product-${product.id}`}
+                className={`bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-500 group ${visibleElements.has(`product-${product.id}`) ? (reduceMotion ? '' : 'animate-fade-in-up') : 'opacity-0 translate-y-6'}`}
+                style={{ transitionDelay: `${idx * 100}ms` }}
+              >
+                <div className="relative aspect-square overflow-hidden cursor-pointer bg-white" onClick={() => openImageModal(product, 0)}>
+                  <img src={product.images[0]} alt={product.name[language]} className="w-full h-full object-contain p-2 md:p-3 transition-transform duration-500" loading="lazy" />
                   <div className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                     {product.price.toLocaleString()} FCFA
                   </div>
-                  <button onClick={(e) => { e.stopPropagation(); toggleFavorite(product.id); }} className={`absolute top-4 left-4 p-3 rounded-full transition-all hover:scale-110 active:scale-95 ${favorites.includes(product.id) ? 'bg-red-500 text-white' : 'bg-white/90 text-gray-700 hover:bg-white'}`}>
-                    <Heart size={20} fill={favorites.includes(product.id) ? 'currentColor' : 'none'} />
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleFavorite(product.id); }}
+                    className={`absolute top-4 left-4 p-2 md:p-3 rounded-full transition-all hover:scale-110 active:scale-95 ${favorites.includes(product.id) ? 'bg-red-500 text-white' : 'bg-white/90 text-gray-700 hover:bg-white'}`}
+                  >
+                    <Heart size={18} className="md:size-5" fill={favorites.includes(product.id) ? 'currentColor' : 'none'} />
                   </button>
                   {product.inStock ? (
-                    <div className="absolute bottom-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    <div className="absolute bottom-3 left-3 bg-green-500 text-white px-2.5 py-1 rounded-full text-xs md:text-sm font-semibold">
                       {t.products.inStock}
                     </div>
                   ) : (
-                    <div className="absolute bottom-4 left-4 bg-gray-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    <div className="absolute bottom-3 left-3 bg-gray-500 text-white px-2.5 py-1 rounded-full text-xs md:text-sm font-semibold">
                       {t.products.outOfStock}
-                    </div>
-                  )}
-                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 p-2 rounded-full">
-                    <ZoomIn size={24} className="text-gray-700" />
-                  </div>
-                  {product.images.length > 1 && (
-                    <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-xs">
-                      +{product.images.length - 1}
                     </div>
                   )}
                 </div>
@@ -679,29 +709,35 @@ const SunushopLanding = () => {
                     </button>
                   </div>
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xl font-bold text-gray-900">{product.name[language]}</h3>
+                    <h3 className="text-xl md:text-2xl font-bold text-gray-900 group-hover:text-teal-700 transition-colors">{product.name[language]}</h3>
                     <div className="flex items-center space-x-1 text-yellow-500">
                       <Star size={16} fill="currentColor" />
                       <span className="text-sm font-semibold text-gray-700">{product.rating}</span>
                     </div>
                   </div>
-                  <p className="text-gray-600 mb-1">{product.description[language]}</p>
-                  <p className="text-sm text-gray-500 mb-4">{product.reviews} {t.products.reviews}</p>
-                  
+                  <p className="text-sm md:text-base text-gray-600 mb-1">{product.description[language]}</p>
+                  <p className="text-xs md:text-sm text-gray-500 mb-3 md:mb-4">{product.reviews} {t.products.reviews}</p>
+
                   {/* Color Options */}
-                  <div className="flex gap-2 mb-4">
-                    {product.colors.map((color, cidx) => (
-                      <div key={cidx} className={`w-6 h-6 rounded-full border-2 ${color === product.color ? 'border-teal-700' : 'border-gray-300'} hover:scale-110 transition-transform cursor-pointer`} style={{ backgroundColor: color === 'beige' ? '#F5F5DC' : color === 'white' ? '#FFFFFF' : color === 'red' ? '#DC2626' : color === 'blue' ? '#3B82F6' : color === 'gold' ? '#FFD700' : color === 'black' ? '#000000' : color === 'pink' ? '#EC4899' : color === 'yellow' ? '#FBBF24' : color === 'orange' ? '#F97316' : color === 'cream' ? '#FFFDD0' : color === 'silver' ? '#C0C0C0' : color }}></div>
-                    ))}
-                  </div>
+                  {product.colors && (
+                    <div className="flex gap-2 mb-4">
+                      {product.colors.map((color, cidx) => (
+                        <div
+                          key={cidx}
+                          className={`w-6 h-6 rounded-full border-2 ${color === product.color ? 'border-teal-700' : 'border-gray-300'} hover:scale-110 transition-transform cursor-pointer`}
+                          style={{ backgroundColor: color === 'beige' ? '#F5F5DC' : color === 'white' ? '#FFFFFF' : color === 'red' ? '#DC2626' : color === 'blue' ? '#3B82F6' : color === 'gold' ? '#FFD700' : color === 'black' ? '#000000' : color === 'pink' ? '#EC4899' : color === 'yellow' ? '#FBBF24' : color === 'orange' ? '#F97316' : color === 'cream' ? '#FFFDD0' : color === 'silver' ? '#C0C0C0' : color }}
+                        ></div>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="flex gap-2">
-                    <button onClick={() => addToCart(product)} disabled={!product.inStock} className="flex-1 bg-teal-700 text-white py-3 rounded-lg font-semibold hover:bg-teal-800 transition-all hover:scale-105 active:scale-95 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                      <ShoppingCart size={18} />
-                      <span>{t.products.addToCart}</span>
+                    <button onClick={() => showAddedToast()} disabled={!product.inStock} className="flex-1 bg-teal-700 text-white py-2.5 md:py-3 rounded-lg font-semibold hover:bg-teal-800 transition-all hover:scale-105 active:scale-95 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <ShoppingCart size={16} className="md:size-[18px]" />
+                      <span>{language === 'fr' ? 'Ajouter' : 'Add'}</span>
                     </button>
-                    <button onClick={() => handleWhatsApp(product)} className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all hover:scale-105 active:scale-95">
-                      <Phone size={18} />
+                    <button onClick={() => handleWhatsApp(product)} className="px-3 md:px-4 py-2.5 md:py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all hover:scale-105 active:scale-95">
+                      <Phone size={16} className="md:size-[18px]" />
                     </button>
                   </div>
                 </div>
@@ -793,8 +829,13 @@ const SunushopLanding = () => {
       </footer>
 
       {/* Floating WhatsApp */}
-      <button onClick={() => handleWhatsApp()} className="fixed bottom-8 right-8 bg-green-500 text-white p-5 rounded-full shadow-2xl hover:bg-green-600 transition-all z-50 hover:scale-110 active:scale-95 animate-bounce-slow">
-        <Phone size={28} />
+      <button
+        aria-label={language === 'fr' ? 'Contacter via WhatsApp' : 'Contact via WhatsApp'}
+        onClick={() => handleWhatsApp()}
+        className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-50 rounded-full bg-[#25D366] shadow-xl hover:shadow-2xl transition-all hover:scale-105 active:scale-95 focus-visible:ring-4 ring-[#25D366]/40 animate-bounce-slow"
+        style={{ width: 56, height: 56 }}
+      >
+        <img src="/images/whatsapp-glyph.svg" alt="" className="w-7 h-7 mx-auto" />
       </button>
 
       {/* Cart Modal */}
@@ -823,7 +864,7 @@ const SunushopLanding = () => {
                     <div className="flex-1">
                       <h4 className="font-bold text-lg">{item.name[language]}</h4>
                       <p className="text-gray-600">{item.price.toLocaleString()} FCFA</p>
-                      <div className="mt-2 flex items-center gap-2">
+                      <div className="mt-2 flex items-center gap-2 flex-wrap">
                         <span className="text-sm text-gray-500">{language === 'fr' ? 'Quantité' : 'Quantity'}:</span>
                         <div className="flex items-center gap-2">
                           <button onClick={() => decreaseQty(item.id)} className="w-8 h-8 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-800 flex items-center justify-center">-</button>
@@ -860,16 +901,17 @@ const SunushopLanding = () => {
 
       {/* Image Modal with Carousel */}
       {showImageModal && selectedProduct && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-          <button onClick={() => setShowImageModal(false)} className="absolute top-4 right-4 text-white hover:text-gray-300 transition">
-            <X size={40} />
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[80] p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowImageModal(false); }}>
+          <button onClick={() => setShowImageModal(false)} className="absolute top-3 right-3 md:top-4 md:right-4 text-white transition z-10 bg-black/40 hover:bg-black/50 rounded-full p-2 backdrop-blur-sm">
+            <X size={28} className="md:hidden" />
+            <X size={40} className="hidden md:block" />
           </button>
 
-          <div className="relative w-full max-w-5xl bg-white/5 rounded-2xl p-4 md:p-6">
-            <div className="grid md:grid-cols-2 gap-6 items-start">
+          <div className="relative w-full md:max-w-5xl md:bg-white/5 md:rounded-2xl p-0 md:p-6 max-h-[100dvh] overflow-y-auto overflow-x-hidden">
+            <div className="grid md:grid-cols-2 gap-4 md:gap-6 items-start w-full">
               {/* Left: Carousel */}
-              <div className="relative">
-                <img src={selectedProduct.images[currentImageIndex]} alt={selectedProduct.name[language]} className="w-full h-auto max-h-[70vh] object-contain rounded-xl bg-black/20" />
+              <div className="relative flex items-center justify-center">
+                <img src={selectedProduct.images[currentImageIndex]} alt={selectedProduct.name[language]} className="w-auto max-w-[100vw] h-auto max-h-[70vh] md:w-full md:max-h-[70vh] object-contain md:rounded-xl bg-black/20" />
                 {selectedProduct.images.length > 1 && (
                   <>
                     <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition">
@@ -881,10 +923,16 @@ const SunushopLanding = () => {
                   </>
                 )}
                 {selectedProduct.images.length > 1 && (
-                  <div className="mt-3 grid grid-cols-5 gap-2">
+                  <div className="mt-3 flex gap-2 overflow-x-auto md:grid md:grid-cols-5">
                     {selectedProduct.images.map((src, idx) => (
-                      <button key={idx} onClick={() => setCurrentImageIndex(idx)} className={`border-2 rounded-lg overflow-hidden ${idx === currentImageIndex ? 'border-white' : 'border-white/40'}`}>
-                        <img src={src} alt={`thumb-${idx}`} className="w-full h-16 object-cover" />
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentImageIndex(idx)}
+                        className={`border-2 rounded-lg overflow-hidden ${idx === currentImageIndex ? 'border-white' : 'border-white/40'}`}
+                      >
+                        <div className="w-16 h-16 md:w-full md:aspect-square bg-black/10 flex items-center justify-center">
+                          <img src={src} alt={`thumb-${idx}`} className="max-w-full max-h-full object-contain" />
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -892,24 +940,24 @@ const SunushopLanding = () => {
               </div>
 
               {/* Right: Details */}
-              <div className="text-white">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-2xl md:text-3xl font-bold">{selectedProduct.name[language]}</h3>
-                  <div className="flex items-center space-x-1 text-yellow-300">
-                    <Star size={18} fill="currentColor" />
-                    <span className="text-sm font-semibold">{selectedProduct.rating}</span>
-                    <span className="text-xs text-gray-300">({selectedProduct.reviews} {t.products.reviews})</span>
+              <div className="text-white px-3 pb-4 md:px-0 w-full overflow-hidden">
+                <div className="flex flex-col gap-2 w-full">
+                  <h3 className="text-lg md:text-3xl font-bold break-words pr-2">{selectedProduct.name[language]}</h3>
+                  <div className="flex items-center gap-2 text-yellow-300">
+                    <Star size={14} className="md:size-[18px] flex-shrink-0" fill="currentColor" />
+                    <span className="text-xs md:text-sm font-semibold">{selectedProduct.rating}</span>
+                    <span className="text-xs text-gray-300">({selectedProduct.reviews})</span>
                   </div>
                 </div>
-                <div className="mt-2 flex items-center gap-2">
+                <div className="mt-3 flex flex-col gap-2 w-full">
                   {selectedProduct.inStock ? (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-500 text-white text-xs font-semibold">{t.products.inStock}</span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-green-500 text-white text-xs font-semibold w-fit">{t.products.inStock}</span>
                   ) : (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-500 text-white text-xs font-semibold">{t.products.outOfStock}</span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-500 text-white text-xs font-semibold w-fit">{t.products.outOfStock}</span>
                   )}
-                  <span className="text-lg font-bold ml-auto bg-red-600 px-3 py-1 rounded-lg">{selectedProduct.price.toLocaleString()} FCFA</span>
+                  <span className="text-sm md:text-lg font-bold bg-red-600 px-2.5 py-1.5 rounded-lg w-fit max-w-full break-words">{selectedProduct.price.toLocaleString()} FCFA</span>
                 </div>
-                <p className="mt-4 text-gray-200">{selectedProduct.description[language]}</p>
+                <p className="mt-3 text-sm md:text-base text-gray-200 break-words pr-2">{selectedProduct.description[language]}</p>
 
                 {/* Colors */}
                 {selectedProduct.colors && (
@@ -924,23 +972,34 @@ const SunushopLanding = () => {
                 )}
 
                 {/* Qty + Actions */}
-                <div className="mt-6 flex items-center gap-4">
-                  <div className="flex items-center gap-2 bg-white/10 rounded-lg p-1">
-                    <button onClick={() => setModalQty(q => Math.max(1, q - 1))} className="w-9 h-9 rounded-md bg-white/20 hover:bg-white/30 text-white flex items-center justify-center">-</button>
-                    <span className="min-w-8 text-center font-semibold">{modalQty}</span>
-                    <button onClick={() => setModalQty(q => q + 1)} className="w-9 h-9 rounded-md bg-white/20 hover:bg-white/30 text-white flex items-center justify-center">+</button>
+                <div className="mt-4 md:mt-6 flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-4 w-full max-w-full">
+                  <div className="flex items-center gap-2 bg-white/10 rounded-lg p-1 w-fit">
+                    <button onClick={() => setModalQty(q => Math.max(1, q - 1))} className="w-7 h-7 md:w-9 md:h-9 rounded-md bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-sm">-</button>
+                    <span className="min-w-6 text-center font-semibold text-sm">{modalQty}</span>
+                    <button onClick={() => setModalQty(q => q + 1)} className="w-7 h-7 md:w-9 md:h-9 rounded-md bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-sm">+</button>
                   </div>
 
-                  <button onClick={() => addToCartWithQty(selectedProduct, modalQty)} disabled={!selectedProduct.inStock} className="flex-1 bg-[#1D8D4C] hover:bg-[#167342] text-white py-3 rounded-lg font-semibold transition-all hover:scale-105 active:scale-95 disabled:opacity-50">
-                    {language === 'fr' ? 'Ajouter au Panier' : 'Add to Cart'}
-                  </button>
+                  <div className="flex gap-2 w-1/2 md:w-full max-w-full">
+                    <button onClick={() => showAddedToast()} disabled={!selectedProduct.inStock} className="flex-1 bg-[#1D8D4C] hover:bg-[#167342] text-white py-2 md:py-3 rounded-lg text-xs md:text-base font-semibold transition-all active:scale-95 disabled:opacity-50 min-w-0">
+                      {language === 'fr' ? 'Ajouter' : 'Add'}
+                    </button>
 
-                  <button onClick={() => handleWhatsApp(selectedProduct)} className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all hover:scale-105 active:scale-95">
-                    <Phone size={18} />
-                  </button>
+                    <button onClick={() => handleWhatsApp(selectedProduct)} className="w-14 md:w-auto md:px-4 py-2 md:py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all active:scale-95 flex items-center justify-center flex-shrink-0">
+                      <Phone size={18} className="md:size-[18px]" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[90]">
+          <div className="bg-green-600 text-white px-4 py-2 rounded-full shadow-lg font-semibold">
+            {toastMsg}
           </div>
         </div>
       )}
